@@ -21,11 +21,13 @@ app = FastAPI(
     version="1.0.0",
 )
 
+# Allow requests from the local frontend and deployed Vercel frontend.
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
         "http://localhost:5173",
         "http://127.0.0.1:5173",
+        "https://acme-salary-management-rosy.vercel.app",
     ],
     allow_credentials=True,
     allow_methods=["*"],
@@ -93,7 +95,7 @@ def list_employees(
     }
 
 
-# CSV export must be registered before /{employee_id}.
+# Register the CSV route before /{employee_id}.
 @app.get("/api/employees/export.csv")
 def export_employees(
     search: str | None = None,
@@ -265,9 +267,7 @@ def deactivate_employee(
 
 @app.get("/api/analytics")
 def analytics(db: Session = Depends(get_db)):
-    total = (
-        db.query(func.count(Employee.id)).scalar() or 0
-    )
+    total = db.query(func.count(Employee.id)).scalar() or 0
 
     active = (
         db.query(func.count(Employee.id))
